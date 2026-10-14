@@ -38,7 +38,7 @@ SRC = os.path.join(ROOT, "src")
 OUT = os.path.join(ROOT, "docs")
 
 VERSION = "1.2.1"
-PUBLIC_URL = "https://hesherson.github.io/ACM-Extended-Wiki/"
+PUBLIC_URL = "https://zeratulspc.github.io/ACM-Extended-Wiki/"
 REVIEWED = {"quick-reference", "airway", "ventilator", "accessibility", "zeus", "glossary", "ov_tbi", "ov_chest", "ov_oxygen", "ov_bleeding", "tbi", "obtunded", "blast", "index", "access", "medications", "descriptors", "fluids", "ov_access", "circulation", "settings", "menu", "ov_intro", "ov_circ", "oxygen", "flight", "bleeding", "debug"}
 
 # slug, filename, nav title, nav group.

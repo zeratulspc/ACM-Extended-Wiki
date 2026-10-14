@@ -114,7 +114,9 @@ Build, local-link, anchor, asset and reproducibility checks are provided in `scr
 
 ## Hosting
 
-Preserve the existing GitHub Pages source: the `main` branch, `/docs` directory. Copy this ZIP’s extracted contents into the existing repository and commit the rebuilt `docs/` with the source changes.
+This personal preview branch publishes `https://zeratulspc.github.io/ACM-Extended-Wiki/` from `codex/personal-pages`, `/docs`. The authored Korean edition is at `/ACM-Extended-Wiki/ko/`. `PUBLIC_URL` points to this personal site so canonical links, alternate-language links and copied section links use the same address.
+
+Keep this deployment-only commit on the personal fork. The upstream contribution remains on `codex/korean-wiki-translation` with the upstream site URL and its original PR commits.
 
 No external font request is required. Each HTML page contains the shared search index, glossary definitions, styling and reference controls.
 
