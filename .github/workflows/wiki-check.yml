@@ -13,7 +13,9 @@ jobs:
       - name: Build the wiki
         run: python3 build.py
       - name: Check pages, anchors and assets
-        run: python3 scripts/check_wiki.py
+        run: |
+          python3 scripts/check_wiki.py
+          python3 scripts/check_korean.py
       - name: Check browser script syntax
         run: |
           node --check src/reference.js
@@ -43,3 +45,4 @@ jobs:
           node scripts/check_infusion_guide.mjs
           node scripts/check_infusion_workbench.mjs
           node scripts/check_mobile_print.mjs
+          node scripts/check_korean.mjs

@@ -1,0 +1,14 @@
+{
+  "ACM Extended Wiki | Flow calculation reference": "ACM Extended 위키 | 유량 계산 참고",
+  "Access and clamp formulas": "정맥로와 클램프 공식",
+  "Checked against ACM Extended source revision": "대조한 ACM Extended 소스 버전:",
+  "Current access flow function": "현재 정맥로 유량 함수",
+  "Final volume calculation": "최종 유입량 계산",
+  "Fluid conversion": "수액 전환",
+  "Open IV access & infusions": "정맥로와 지속 주입",
+  "Open fluids & blood volume": "수액과 혈액량",
+  "The current IV and fluid references include the source formulas, gauge factors and final admission rules.": "현재 정맥로·수액 참고 자료에는 소스 공식, 게이지 계수와 최종 유입 규칙이 포함되어 있습니다.",
+  "for the blood, plasma and crystalloid compartments, conversion rates and worked examples.": "에서 혈액·혈장·결정질 수액 구획, 전환 속도와 계산 예제를 확인하세요.",
+  "for the gauge comparison, placement rules, drip calculator, pressure cuff behavior and compromised site fractions.": "에서 게이지 비교, 삽입 규칙, 점적 계산기, 압력 커프 동작과 손상된 주입 부위의 유입 비율을 확인하세요.",
+  "on 13 September 2026.": ", 검토일은 2026년 9월 13일입니다."
+}

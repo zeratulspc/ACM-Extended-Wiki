@@ -6,7 +6,7 @@
   'use strict';
   const api = window.ACMEWiki = window.ACMEWiki || {};
   const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
-  const titles = { normal: 'Normal plateau', shark: 'Obstruction / shark fin', cleft: 'Curare cleft', flat: 'Flat trace' };
+  const titles = { normal: wikiText('Normal plateau'), shark: wikiText('Obstruction / shark fin'), cleft: wikiText('Curare cleft'), flat: wikiText('Flat trace') };
 
   function sample({ pattern, peak, rate, severity, time }) {
     if (!(pattern in titles) || ![peak, rate, severity, time].every(Number.isFinite) ||
@@ -15,19 +15,19 @@
     const phase = (time / period) % 1;
     let value = phase < .05 ? phase / .05 : phase < .40 ? .9 + .1 * ((phase - .05) / .35) :
       phase < .45 ? 1 - ((phase - .40) / .05) : 0;
-    let label = phase < .05 ? 'Exhaled gas rises' : phase < .40 ? 'Expiratory plateau' :
-      phase < .45 ? 'Inspiratory downstroke' : 'Baseline';
+    let label = phase < .05 ? wikiText('Exhaled gas rises') : phase < .40 ? wikiText('Expiratory plateau') :
+      phase < .45 ? wikiText('Inspiratory downstroke') : wikiText('Baseline');
     if (pattern === 'shark') {
       const fin = phase < .42 ? (phase / .42) ** .55 : phase < .47 ? (1 - ((phase - .42) / .05)) * .95 : 0;
       value = value * (1 - severity) + fin * severity;
-      label = phase < .42 ? 'Sloping expiration' : phase < .47 ? 'Inspiratory downstroke' : 'Baseline';
+      label = phase < .42 ? wikiText('Sloping expiration') : phase < .47 ? wikiText('Inspiratory downstroke') : wikiText('Baseline');
     } else if (pattern === 'cleft') {
       const width = .05 + .05 * severity;
       if (Math.abs(phase - .26) < width) {
         value *= 1 - (.30 + .45 * severity) * (1 - Math.abs(phase - .26) / width);
-        label = 'Cleft during expiration';
+        label = wikiText('Cleft during expiration');
       }
-    } else if (pattern === 'flat') { value = 0; label = 'No exhaled CO2 waveform'; }
+    } else if (pattern === 'flat') { value = 0; label = wikiText('No exhaled CO2 waveform'); }
     return { co2: clamp(value, 0, 1) * peak, phase: label, period };
   }
   api.capnographyExample = sample;
@@ -72,7 +72,7 @@
     function inspect(time, updateInput = false) {
       if (!currentValid || !Number.isFinite(time) || time < 0 || time > duration) {
         cursor.style.display = 'none';
-        readout.textContent = currentValid ? 'Choose a time from 0 to 10.5 seconds.' : 'Enter valid example settings to inspect the waveform.';
+        readout.textContent = currentValid ? wikiText('Choose a time from 0 to 10.5 seconds.') : wikiText('Enter valid example settings to inspect the waveform.');
         return;
       }
       const result = sample({ ...parameters, time });
@@ -85,10 +85,10 @@
       const left = x + 280 <= plot.right ? x + 14 : x - 278;
       const top = clamp(y - 75, plot.top + 4, plot.bottom - 65);
       bubble.setAttribute('transform', 'translate(' + clamp(left, plot.left, plot.right - 264) + ',' + top + ')');
-      root.querySelector('[data-capno-bubble-time]').textContent = 'Time: ' + time.toFixed(2) + ' s';
-      root.querySelector('[data-capno-bubble-value]').textContent = 'Example CO2: ' + result.co2.toFixed(2) + ' mmHg';
+      root.querySelector('[data-capno-bubble-time]').textContent = wikiText('Time: ') + time.toFixed(2) + ' s';
+      root.querySelector('[data-capno-bubble-value]').textContent = wikiText('Example CO2: ') + result.co2.toFixed(2) + ' mmHg';
       cursor.style.display = '';
-      readout.replaceChildren(row('Time', time.toFixed(2) + ' s'), row('Example CO2', result.co2.toFixed(2) + ' mmHg'), row('Phase', result.phase));
+      readout.replaceChildren(row(wikiText('Time'), time.toFixed(2) + ' s'), row(wikiText('Example CO2'), result.co2.toFixed(2) + ' mmHg'), row(wikiText('Phase'), result.phase));
       if (updateInput) input.value = time.toFixed(2);
       scanTime = time;
     }
@@ -99,12 +99,12 @@
       fields.severity.disabled = !severe;
       fields.peak.disabled = selected === 'flat';
       fields.rate.disabled = selected === 'flat';
-      root.querySelector('[data-capno-severity-label]').textContent = selected === 'cleft' ? 'Unmatched effort' : selected === 'shark' ? 'Obstruction severity' : 'Shape severity';
-      root.querySelector('[data-capno-severity-value]').textContent = severe ? fields.severity.value + '%' : 'Not used';
+      root.querySelector('[data-capno-severity-label]').textContent = selected === 'cleft' ? wikiText('Unmatched effort') : selected === 'shark' ? wikiText('Obstruction severity') : wikiText('Shape severity');
+      root.querySelector('[data-capno-severity-value]').textContent = severe ? fields.severity.value + '%' : wikiText('Not used');
       root.querySelectorAll('[data-capno-pattern-note]').forEach(note => { note.hidden = note.dataset.capnoPatternNote !== selected; });
       currentValid = Object.entries(fields).filter(([name]) => name !== 'pattern').every(([, field]) => field.disabled || field.value.trim() !== '' && field.checkValidity());
       if (!currentValid) {
-        help.textContent = 'Use a breathing rate of 4–60/min and a CO2 level of 5–80 mmHg.';
+        help.textContent = wikiText('Use a breathing rate of 4–60/min and a CO2 level of 5–80 mmHg.');
         inspect(NaN); stopScan(); return;
       }
       // Disabled controls retain the last valid settings when flat is selected.
@@ -118,9 +118,9 @@
           (plot.bottom - sample({ ...parameters, time }).co2 / 80 * (plot.bottom - plot.top)).toFixed(2));
       }
       root.querySelector('[data-capno-line]').setAttribute('points', points.join(' '));
-      const summary = titles[selected] + (selected === 'flat' ? ': no waveform in this example.' : ', example CO2 level ' + parameters.peak + ' mmHg and breathing rate ' + parameters.rate + '/min.');
-      help.textContent = summary + ' Hover, tap or choose a time to inspect the trace.';
-      root.querySelector('#capno-desc').textContent = summary + ' The graph spans 10.5 seconds.';
+      const summary = titles[selected] + (selected === 'flat' ? wikiText(': no waveform in this example.') : wikiText(', example CO2 level ') + parameters.peak + wikiText(' mmHg and breathing rate ') + parameters.rate + '/min.');
+      help.textContent = summary + wikiText(' Hover, tap or choose a time to inspect the trace.');
+      root.querySelector('#capno-desc').textContent = summary + wikiText(' The graph spans 10.5 seconds.');
       inspect(input.value.trim() === '' ? NaN : Number(input.value));
       if (!pointerShown && !playing && document.activeElement !== input) cursor.style.display = 'none';
     }
@@ -136,7 +136,7 @@
     }
     function syncScan() {
       cancelAnimationFrame(frame); frame = 0; previous = 0;
-      play.textContent = playing ? 'Pause scan' : 'Play scan';
+      play.textContent = playing ? wikiText('Pause scan') : wikiText('Play scan');
       play.setAttribute('aria-pressed', String(playing));
       if (shouldRun()) frame = requestAnimationFrame(tick);
     }

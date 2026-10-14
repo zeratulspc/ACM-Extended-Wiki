@@ -65,13 +65,13 @@
       previous.disabled = showAll;
       next.disabled = showAll;
       all.setAttribute('aria-pressed', String(showAll));
-      all.textContent = showAll ? 'Show one stage' : 'Show all stages';
+      all.textContent = showAll ? wikiText('Show one stage') : wikiText('Show all stages');
       play.disabled = showAll;
-      play.textContent = paused ? 'Play slideshow' : 'Pause slideshow';
+      play.textContent = paused ? wikiText('Play slideshow') : wikiText('Pause slideshow');
       play.setAttribute('aria-pressed', String(!paused));
       status.setAttribute('aria-live', announce ? 'polite' : 'off');
-      status.textContent = showAll ? 'All ' + slides.length + ' stages shown.' :
-        'Stage ' + (index + 1) + ' of ' + slides.length + ': ' + slides[index].querySelector('h3,h4').textContent;
+      status.textContent = showAll ? wikiText`All ${slides.length} stages shown.` :
+        wikiText`Stage ${index + 1} of ${slides.length}: ${slides[index].querySelector("h3,h4").textContent}`;
     }
     function change(value, manual = true, carry = 0) {
       clearTimeout(fadeTimer);

@@ -138,7 +138,17 @@ Assets and IV controls were checked against ACM Extended commit `abf6253d4876b4a
 
 ## Languages and the latest reference additions
 
-The sidebar offers US English, UK English, German, French, Spanish and Russian. US/UK change common English spellings locally and retain the preference. German, French, Spanish and Russian open the current published page in Google’s website translator in a new tab; they require internet access and are automatic translations. The ZIP does not contain independently translated offline editions. Language changes require pressing the clearly labeled apply/open button; pages do not redirect on load.
+The sidebar offers US English, UK English, Korean, German, French, Spanish and Russian. US/UK change common English spellings locally and retain the preference. Korean opens the authored static edition in `docs/ko/`, retaining the current article and section. German, French, Spanish and Russian open the current published page in Google’s website translator in a new tab; they require internet access and are automatic translations. English and Korean are available offline. Language changes require pressing the apply/open button; pages do not redirect on load. A direct edition link also works without JavaScript.
+
+### Maintaining the Korean edition
+
+`python3 build.py` generates 28 English pages and 28 Korean pages. Both editions use the same article structure, anchors, figures, medication models and shared image/audio files. Each edition embeds its own search index and 324 glossary definitions. Korean search accepts a single Hangul syllable. The existing English sources remain the source of truth.
+
+The authored translations live in `src/locales/ko/`: one source-keyed JSON catalog per page, `shared.json` for common text, `data.json` for concentration-explorer descriptions, and `runtime.json` for interactive messages. English keys identify the exact normalized source text. Values are reviewed Korean text; original game option names, acronyms, code identifiers and units may deliberately remain in English. An explicit empty string omits an English-only grammatical fragment; `null` means unfinished translation and fails the build. Runtime messages preserve numbered placeholders such as `{0}`.
+
+After changing English content, run `python3 scripts/extract_korean_catalog.py` to rebuild the English source and refresh catalogs while preserving existing translations. Translate new `null` values, review surrounding inline links and any changed game conditions, then rebuild both editions. Descriptive JSON fields are translated separately from numerical model inputs; new interactive messages need a `wikiText` call and a matching runtime entry.
+
+Run `python3 scripts/check_wiki.py`, `python3 scripts/check_korean.py`, and the browser suites in `.github/workflows/wiki-check.yml`. The Korean checks cover source numbers, placeholders, identical structural/model attributes, desktop/mobile reading, language switching (including leaving a Google proxy), section anchors, Korean search, glossary popups, calculations, interactive labels and no-JavaScript reading. Commit regenerated `docs/` together with source/catalog changes. GitHub Pages still serves `main` / `docs`.
 
 `PUBLIC_URL` in `build.py` is the conventional GitHub Pages URL for this repository. Update it if the site moves to a custom domain. Local file and localhost previews retain the English modes and explain that live translation becomes available on the published site. Code and key labels retain their original text. [Google’s website translation instructions](https://support.google.com/translate/answer/2534559?hl=en&co=GENIE.Platform%3DDesktop).
 

@@ -32,15 +32,15 @@
       var result = empty || !form.checkValidity() ? null : drip(values);
       out.error.hidden = !!result;
       if (!result) {
-        out.error.textContent = "Enter a valid value in every field. Clamp: 0 to 100%; maximum: 60 to 300 gtt/min; exponent: 1 to 4.";
-        ["drops","rate","hourly","dose","duration"].forEach(function (key) { out[key].textContent = "Unavailable"; });
+        out.error.textContent = wikiText("Enter a valid value in every field. Clamp: 0 to 100%; maximum: 60 to 300 gtt/min; exponent: 1 to 4.");
+        ["drops","rate","hourly","dose","duration"].forEach(function (key) { out[key].textContent = wikiText("Unavailable"); });
         return;
       }
       out.drops.textContent = number(result.drops) + " gtt/min";
       out.rate.textContent = number(result.rate) + " mL/min";
       out.hourly.textContent = number(result.hourly) + " mL/h";
       out.dose.textContent = number(result.dose) + " mg/min";
-      out.duration.textContent = result.duration === null ? "Stopped" : number(result.duration) + " min";
+      out.duration.textContent = result.duration === null ? wikiText("Stopped") : number(result.duration) + " min";
     }
     form.addEventListener("input", update);
     form.addEventListener("change", update);
@@ -103,8 +103,8 @@ function update(){
  let empty=false;
  for(const key of keys){const field=form.elements.namedItem(key);if(field.value.trim()==="")empty=true;values[key]=Number(field.value);}
  const result=empty || !form.checkValidity()?null:window.ACMEWiki.calculateDO2(values);
- const error=form.querySelector('[data-do2-result="error"]');error.hidden=!!result;error.textContent=result?"":"Enter a valid value in each field to calculate delivery.";
- for(const [label,key] of Object.entries(labels))form.querySelector('[data-do2-result="'+label+'"]').textContent=result?new Intl.NumberFormat(undefined,{maximumFractionDigits:1}).format(result[key]*100)+"%":"Unavailable";
+ const error=form.querySelector('[data-do2-result="error"]');error.hidden=!!result;error.textContent=result?"":wikiText("Enter a valid value in each field to calculate delivery.");
+ for(const [label,key] of Object.entries(labels))form.querySelector('[data-do2-result="'+label+'"]').textContent=result?new Intl.NumberFormat(undefined,{maximumFractionDigits:1}).format(result[key]*100)+"%":wikiText("Unavailable");
 }
 form.addEventListener("input",update);form.addEventListener("change",update);form.addEventListener("submit",e=>{e.preventDefault();update();});update();
 })();
@@ -139,15 +139,15 @@ form.addEventListener("input",update);form.addEventListener("change",update);for
     });
   };
   const configs={
-    "hemorrhage-delivery":{min:0,max:50,ymax:125,label:"Blood loss",unit:"%",names:["SV / DO₂ at HR 75","DO₂ at HR 120"],
+    "hemorrhage-delivery":{min:0,max:50,ymax:125,label:wikiText("Blood loss"),unit:"%",names:[wikiText("SV / DO₂ at HR 75"),wikiText("DO₂ at HR 120")],
       values:x=>[100*(1-x/100)**1.6,124*(1-x/100)**1.6]},
-    "pressure-bleeding":{min:0,max:160,ymax:2,label:"MAP",unit:"mmHg",names:["Active bleeding multiplier"],
+    "pressure-bleeding":{min:0,max:160,ymax:2,label:"MAP",unit:"mmHg",names:[wikiText("Active bleeding multiplier")],
       values:x=>[x<=0?1:clamp(x/70,.55,2)],valueUnit:"×"},
-    "ppv-delivery":{min:0,max:50,ymax:150,label:"Blood loss",unit:"%",names:["No PPV","PPV, PEEP 5","PPV, PEEP 15"],
+    "ppv-delivery":{min:0,max:50,ymax:150,label:wikiText("Blood loss"),unit:"%",names:[wikiText("No PPV"),wikiText("PPV, PEEP 5"),wikiText("PPV, PEEP 15")],
       values:x=>["none","bvm","vent"].map(support=>100*api.calculateDO2({blood:6*(1-x/100),saline:0,plasma:0,heartRate:130,saturation:97,peep:15,support}).do2)},
-    "poiseuille-radius":{min:50,max:100,ymax:100,label:"Relative radius",unit:"%",names:["Ideal relative flow"],
+    "poiseuille-radius":{min:50,max:100,ymax:100,label:wikiText("Relative radius"),unit:"%",names:[wikiText("Ideal relative flow")],
       values:x=>[100*(x/100)**4]},
-    "altitude-pressure-gas":{min:0,max:10000,ymax:160,label:"Corrected altitude",unit:"ft",names:["Ambient pressure","Ideal closed gas volume"],
+    "altitude-pressure-gas":{min:0,max:10000,ymax:160,label:wikiText("Corrected altitude"),unit:"ft",names:[wikiText("Ambient pressure"),wikiText("Ideal closed gas volume")],
       values:x=>{const p=(1-2.25577e-5*x*.3048)**5.25588;return[100*p,100/p];}}
   };
   api.chartValues=(id,x)=>configs[id]&&Number.isFinite(x)&&x>=configs[id].min&&x<=configs[id].max ? configs[id].values(x) : null;
@@ -155,7 +155,7 @@ form.addEventListener("input",update);form.addEventListener("change",update);for
   document.querySelectorAll(".med-curve,.physiology-chart").forEach(figure=>{
     const med=figure.classList.contains("med-curve"), svg=figure.querySelector("svg");
     if(!svg)return;
-    const cfg=med?{min:0,max:Number(figure.dataset.duration),ymax:100,label:"Time since delivery",unit:"s",names:["Relative game effect"],
+    const cfg=med?{min:0,max:Number(figure.dataset.duration),ymax:100,label:wikiText("Time since delivery"),unit:"s",names:[wikiText("Relative game effect")],
       values:t=>[100*medicationEffect(t,Number(figure.dataset.peak),Number(figure.dataset.hold),Number(figure.dataset.duration),figure.dataset.route)]}:configs[figure.dataset.chart];
     if(!cfg || !Number.isFinite(cfg.max))return;
     const left=med?68:72,right=med?690:672,bottom=med?184:238,top=med?40:64;
@@ -189,7 +189,7 @@ form.addEventListener("input",update);form.addEventListener("change",update);for
     readout.id="chart-readout-"+serial;readout.className="chart-readout";readout.setAttribute("aria-live","off");input.setAttribute("aria-describedby",readout.id);
     panel.append(label,readout);figure.insertBefore(panel,figure.querySelector("figcaption"));
     function render(x,fromPointer=false){
-      if(!Number.isFinite(x)||x<cfg.min||x>cfg.max){group.style.display="none";readout.textContent="Enter a value from "+cfg.min+" to "+cfg.max+" "+cfg.unit+".";return;}
+      if(!Number.isFinite(x)||x<cfg.min||x>cfg.max){group.style.display="none";readout.textContent=wikiText`Enter a value from ${cfg.min} to ${cfg.max} ${cfg.unit}.`;return;}
       const values=cfg.values(x),px=left+(x-cfg.min)/(cfg.max-cfg.min)*(right-left);
       guide.setAttribute("x1",px);guide.setAttribute("x2",px);
       values.forEach((v,i)=>{dots[i].setAttribute("cx",px);dots[i].setAttribute("cy",bottom-v/cfg.ymax*(bottom-top));});
@@ -199,12 +199,12 @@ form.addEventListener("input",update);form.addEventListener("change",update);for
       readout.replaceChildren();
       const row=(label,value)=>{const span=document.createElement("span"),strong=document.createElement("strong");strong.textContent=label+": ";span.append(strong,document.createTextNode(value));readout.append(span);};
       row(cfg.label,pretty(x,3)+" "+cfg.unit+(med&&x>=60?" ("+Math.floor(x/60)+" min "+pretty(x%60,3)+" s)":""));
-      if(med)row("Delivered reference dose",figure.dataset.dose);
+      if(med)row(wikiText("Delivered reference dose"),figure.dataset.dose);
       
       values.forEach((v,i)=>row(cfg.names[i],pretty(v,3)+(cfg.valueUnit||"%")));
       const bubbleLines=[cfg.label+": "+pretty(x,3)+" "+cfg.unit];
-      if(med)bubbleLines.push("Dose: "+figure.dataset.dose);
-      values.forEach((v,i)=>bubbleLines.push((med?"Effect":cfg.names[i])+": "+pretty(v,3)+(cfg.valueUnit||"%")));
+      if(med)bubbleLines.push(wikiText("Dose: ")+figure.dataset.dose);
+      values.forEach((v,i)=>bubbleLines.push((med?wikiText("Effect"):cfg.names[i])+": "+pretty(v,3)+(cfg.valueUnit||"%")));
       bubbleText.replaceChildren();
       bubbleLines.forEach((line,i)=>{const t=document.createElementNS(ns,"tspan");t.setAttribute("x",10);t.setAttribute("dy",i?18:0);t.textContent=line;bubbleText.append(t);});
       const by=clamp(bottom-values[0]/cfg.ymax*(bottom-top)-bubbleHeight-8,top,bottom-bubbleHeight);
@@ -298,7 +298,7 @@ form.addEventListener("input",update);form.addEventListener("change",update);for
     for(const m of matches){
       fragment.append(document.createTextNode(text.slice(at,m.index)));
       const term=document.createElement("span");term.className="gl";term.dataset.t=entries.get(m[0].toLowerCase()).slug;
-      term.setAttribute("role","button");term.tabIndex=0;term.setAttribute("aria-label","Define "+m[0]);term.setAttribute("aria-haspopup","dialog");
+      term.setAttribute("role","button");term.tabIndex=0;term.setAttribute("aria-label",wikiText`Define ${m[0]}`);term.setAttribute("aria-haspopup","dialog");
       term.textContent=m[0];fragment.append(term);at=m.index+m[0].length;
     }
     fragment.append(document.createTextNode(text.slice(at)));node.replaceWith(fragment);

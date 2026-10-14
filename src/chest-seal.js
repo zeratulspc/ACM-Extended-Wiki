@@ -38,21 +38,21 @@
       });
       const notch = Math.floor(position + 0.00001);
       slider.value = String(notch);
-      slider.setAttribute('aria-valuetext', notch === 0 ? 'Seal flat' : notch === 5 ? 'Full lift: burp reached' : `Lift ${notch} of 5: incomplete burp`);
-      readout.textContent = notch === 0 ? 'Seal flat' : notch === 5 ? 'Full lift' : `Lift ${notch} of 5`;
+      slider.setAttribute('aria-valuetext', notch === 0 ? wikiText('Seal flat') : notch === 5 ? wikiText('Full lift: burp reached') : wikiText`Lift ${notch} of 5: incomplete burp`);
+      readout.textContent = notch === 0 ? wikiText('Seal flat') : notch === 5 ? wikiText('Full lift') : wikiText`Lift ${notch} of 5`;
       demo.dataset.sealFrame = position.toFixed(3);
-      const phrase = description || (position === 5 ? 'Full lift: the game applies burping relief here.' : position === 0 ? 'Seal flat: reassess breathing and circulation.' : 'Partial lift: the burping action has not reached full lift.');
+      const phrase = description || (position === 5 ? wikiText('Full lift: the game applies burping relief here.') : position === 0 ? wikiText('Seal flat: reassess breathing and circulation.') : wikiText('Partial lift: the burping action has not reached full lift.'));
       if (caption.textContent !== phrase) caption.textContent = phrase;
-      stage.setAttribute('aria-label', `${corner.value === 'left' ? 'Left' : 'Right'} corner of the original chest seal. ${phrase}`);
+      stage.setAttribute('aria-label', wikiText`${corner.value === 'left' ? wikiText('Left') : wikiText('Right')} corner of the original chest seal. ${phrase}`);
     }
 
     function render() {
       const t = elapsed % cycle;
-      if (t < 900) draw(0, 'Start with a placed seal and an empty hand.');
-      else if (t < 2900) draw(5 * ease((t - 900) / 2000), 'Lift the selected corner all the way with the mouse wheel.');
-      else if (t < 4500) draw(5, 'Full lift: the game applies burping relief here.');
-      else if (t < 6500) draw(5 * (1 - ease((t - 4500) / 2000)), 'Reverse the wheel to lay the same corner back down.');
-      else draw(0, 'Seal flat: reassess breathing and circulation.');
+      if (t < 900) draw(0, wikiText('Start with a placed seal and an empty hand.'));
+      else if (t < 2900) draw(5 * ease((t - 900) / 2000), wikiText('Lift the selected corner all the way with the mouse wheel.'));
+      else if (t < 4500) draw(5, wikiText('Full lift: the game applies burping relief here.'));
+      else if (t < 6500) draw(5 * (1 - ease((t - 4500) / 2000)), wikiText('Reverse the wheel to lay the same corner back down.'));
+      else draw(0, wikiText('Seal flat: reassess breathing and circulation.'));
     }
 
     function shouldRun() { return visible && !document.hidden && !paused && !motion.matches; }
@@ -70,7 +70,7 @@
       previous = 0;
       toggle.disabled = motion.matches;
       replay.disabled = motion.matches;
-      toggle.textContent = motion.matches ? 'Reduced motion' : paused ? 'Play animation' : 'Pause animation';
+      toggle.textContent = motion.matches ? wikiText('Reduced motion') : paused ? wikiText('Play animation') : wikiText('Pause animation');
       toggle.setAttribute('aria-pressed', String(paused || motion.matches));
       caption.setAttribute('aria-live', paused || motion.matches ? 'polite' : 'off');
       if (shouldRun()) request = window.requestAnimationFrame(tick);

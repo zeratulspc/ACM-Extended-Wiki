@@ -12,10 +12,10 @@
     const query = input.value.trim().toLocaleLowerCase();
     cards.forEach(card => { card.hidden = !card.textContent.toLocaleLowerCase().includes(query); });
     const visible = cards.filter(card => !card.hidden);
-    count.textContent = `${visible.length} of ${cards.length} infusions`;
+    count.textContent = wikiText`${visible.length} of ${cards.length} infusions`;
     empty.hidden = visible.length > 0;
     expand.disabled = visible.length === 0;
-    expand.textContent = visible.length && visible.every(card => card.open) ? 'Collapse visible' : 'Expand visible';
+    expand.textContent = visible.length && visible.every(card => card.open) ? wikiText('Collapse visible') : wikiText('Expand visible');
   };
   input.addEventListener('input', filter);
   expand.addEventListener('click', () => {

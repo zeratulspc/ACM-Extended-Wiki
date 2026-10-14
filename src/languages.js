@@ -6,10 +6,13 @@
   const select=form.querySelector('select');
   const button=form.querySelector('[data-language-apply]');
   const note=form.querySelector('[data-language-note]');
-  const choices=['en-US','en-GB','de','fr','es','ru'];
+  const choices=['en-US','en-GB','ko','de','fr','es','ru'];
+  const korean=form.dataset.edition==='ko';
   const key='acmWikiLanguage';
   let selected='en-US';
   try{const saved=localStorage.getItem(key);if(choices.includes(saved))selected=saved;}catch(error){}
+  if(korean)selected='ko';
+  else if(selected==='ko')selected='en-US';
   const proxyLanguage=new URLSearchParams(location.search).get('_x_tr_tl');
   const isProxy=location.hostname.endsWith('.translate.goog');
   if(isProxy&&choices.includes(proxyLanguage))selected=proxyLanguage;
@@ -75,40 +78,47 @@
     return url;
   }
   function describe(){
-    const local=select.value.startsWith('en-');
+    const local=select.value.startsWith('en-')||select.value==='ko';
     button.disabled=!local&&!sourceUrl();
-    button.textContent=local?'Apply language':'Open translation';
-    note.textContent=local?'English spelling preference is saved.':
-      sourceUrl()?'Automatic translation via Google. Opens a new tab.':'Live translation is available on the published website.';
+    button.textContent=wikiText(local?'Apply language':'Open translation');
+    note.textContent=wikiText(select.value==='ko'?'Authored Korean edition. Available offline.':
+      local?'English spelling preference is saved.':
+      sourceUrl()?'Automatic translation via Google. Opens a new tab.':'Live translation is available on the published website.');
   }
   select.addEventListener('change',describe);
   form.addEventListener('submit',event=>{
     event.preventDefault();selected=select.value;
     try{localStorage.setItem(key,selected);}catch(error){}
+    if(selected==='ko'||(korean&&selected.startsWith('en-'))){
+      const target=new URL(selected==='ko'?form.dataset.koreanUrl:form.dataset.englishUrl,isProxy?sourceUrl():location.href);
+      target.hash=location.hash;
+      if(selected.startsWith('en-'))target.searchParams.set('wiki-language',selected);
+      location.href=target.href;return;
+    }
     if(selected.startsWith('en-')){
       english=selected;
       if(isProxy){const source=sourceUrl();if(source){source.searchParams.set('wiki-language',selected);window.open(source.href,'_blank','noopener,noreferrer');}return;}
-      translateEnglish();note.textContent=selected==='en-GB'?'UK English applied.':'US English applied.';
+      translateEnglish();note.textContent=wikiText(selected==='en-GB'?'UK English applied.':'US English applied.');
     }else{
       const source=sourceUrl();if(!source){describe();return;}
       const url=new URL('https://translate.google.com/translate');
-      url.searchParams.set('sl','en');url.searchParams.set('tl',selected);
+      url.searchParams.set('sl',korean?'ko':'en');url.searchParams.set('tl',selected);
       url.searchParams.set('hl',selected);url.searchParams.set('u',source.href);
       window.open(url.href,'_blank','noopener,noreferrer');
     }
   });
   const queryEnglish=new URLSearchParams(location.search).get('wiki-language');
-  if(queryEnglish==='en-US'||queryEnglish==='en-GB'){
+  if(!korean&&(queryEnglish==='en-US'||queryEnglish==='en-GB')){
     english=queryEnglish;select.value=queryEnglish;
     try{localStorage.setItem(key,queryEnglish);}catch(error){}
   }
   document.querySelectorAll("code,pre,kbd").forEach(element=>element.setAttribute("translate","no"));
-  if(!isProxy)translateEnglish();
+  if(!isProxy&&!korean)translateEnglish();
   // Dynamic definitions and search results receive the same English spelling preference.
   for(const id of ['glpop','qr']){
     const target=document.getElementById(id);if(!target)continue;
     const observer=new MutationObserver(()=>{
-      if(isProxy)return;
+      if(isProxy||korean)return;
       observer.disconnect();translateEnglish(target);observer.observe(target,{childList:true,subtree:true});
     });observer.observe(target,{childList:true,subtree:true});
   }

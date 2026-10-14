@@ -100,7 +100,7 @@ try {
   await toggle.click();
   await motion.clock.runFor(100);
   assert(await frame() >= 2 && await frame() < 2.6, 'Resume after seeking must account for easing');
-  await motion.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+  await motion.evaluate(() => window.scrollTo({top:document.documentElement.scrollHeight,behavior:'instant'}));
   await motion.waitForTimeout(80);
   const offscreen = await frame();
   await motion.clock.runFor(2000);

@@ -62,6 +62,7 @@ class Page(HTMLParser):
 def normalize(text):
     # Build dates and JSON object ordering are not content changes.
     text = re.sub(r"Updated \d{4}-\d{2}-\d{2}", "Updated DATE", text)
+    text = re.sub(r"갱신일 \d{4}-\d{2}-\d{2}", "갱신일 DATE", text)
     def data(match):
         return "var " + match.group(1) + "=" + json.dumps(
             json.loads(match.group(2)), ensure_ascii=True, sort_keys=True,
@@ -69,10 +70,11 @@ def normalize(text):
         ) + ";"
     return re.sub(r"var (TERMS|IDX)=(.*);", data, text)
 
-pages = {path.name: Page(path.read_text(encoding="utf-8"))
-         for path in DOCS.glob("*.html")}
+pages = {path.relative_to(DOCS).as_posix(): Page(path.read_text(encoding="utf-8"))
+         for path in DOCS.rglob("*.html")}
 errors = []
 expected = set(re.findall(r'^    \("[^"]+", "([^"]+)"', (ROOT / "build.py").read_text(), re.M))
+expected |= {'ko/' + filename for filename in tuple(expected)}
 if set(pages) != expected:
     errors.append("Generated page set differs from build.py: " + str(set(pages) ^ expected))
 for filename, page in pages.items():
@@ -82,8 +84,8 @@ for filename, page in pages.items():
         url = urlsplit(href)
         if url.scheme or url.netloc:
             continue
-        path = unquote(url.path) or filename
-        target = (DOCS / path).resolve()
+        target = ((DOCS / filename).parent / unquote(url.path)).resolve() if url.path else (DOCS / filename).resolve()
+        path = target.relative_to(DOCS.resolve()).as_posix() if target.is_relative_to(DOCS.resolve()) else ''
         if not target.is_relative_to(DOCS.resolve()):
             errors.append(f"{filename}: reference escapes docs: {href}")
         elif not target.is_file():

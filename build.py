@@ -31,6 +31,7 @@ from responsive_tables import responsive_tables
 from route_lists import stack_route_lists
 from print_reference import render_print_reference
 from reading_layout import group_sections, fold_source_notes, heading_marks, plain
+from localization import Korean, load as load_korean, translate_level_data
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 SRC = os.path.join(ROOT, "src")
@@ -81,6 +82,8 @@ HEAD = """<!DOCTYPE html>
 <meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
 <title>{title}</title>
 <link rel="canonical" href="{canonical}">
+<link rel="alternate" hreflang="en" href="{english_url}">
+<link rel="alternate" hreflang="ko" href="{korean_url}">
 <link rel="icon" type="image/png" href="img/acme-favicon.png">
 <style>
 {css}
@@ -124,6 +127,17 @@ FOOT = r"""
   </div>
 </div>
 <script>
+var ACM_MESSAGES={messages};
+function wikiText(strings,...values){{
+  if(typeof strings==='string'){{
+    if(document.documentElement.lang==='ko' && !Object.hasOwn(ACM_MESSAGES,strings)) (window.ACM_TRANSLATION_MISSING ||= new Set()).add(strings);
+    return Object.hasOwn(ACM_MESSAGES,strings) ? ACM_MESSAGES[strings] : strings;
+  }}
+  var key=Array.from(strings).map(function(part,i){{return part+(i<values.length?'{{'+i+'}}':'');}}).join('');
+  if(document.documentElement.lang==='ko' && !Object.hasOwn(ACM_MESSAGES,key)) (window.ACM_TRANSLATION_MISSING ||= new Set()).add(key);
+  var text=Object.hasOwn(ACM_MESSAGES,key) ? ACM_MESSAGES[key] : key;
+  return text.replace(/\{{(\d+)\}}/g,function(_,i){{return String(values[Number(i)]);}});
+}}
 var TERMS={terms};
 var IDX={index};
 (function(){{
@@ -173,7 +187,7 @@ var IDX={index};
   function esc(s){{return s.replace(/[&<>]/g,function(c){{return {{'&':'&amp;','<':'&lt;','>':'&gt;'}}[c];}});}}
   function run(){{
     var v=q.value.trim().toLowerCase();
-    if(v.length<2){{ qr.hidden=true; qr.innerHTML=''; return; }}
+    if(v.length<2 && !(document.documentElement.lang==='ko' && /[가-힣]/.test(v))){{ qr.hidden=true; qr.innerHTML=''; return; }}
     var words=v.split(/\s+/), hits=[];
     for(var i=0;i<IDX.length;i++){{
       var r=IDX[i], hay=(r.h+' '+r.p+' '+r.t).toLowerCase(), sc=0, ok=true;
@@ -190,7 +204,7 @@ var IDX={index};
       }}
     }}
     hits.sort(function(a,b){{return b.s-a.s;}});
-    if(!hits.length){{ qr.innerHTML='<div class="tb-none">Nothing found</div>'; qr.hidden=false; placeRes(); return; }}
+    if(!hits.length){{ qr.innerHTML='<div class="tb-none">'+wikiText('Nothing found')+'</div>'; qr.hidden=false; placeRes(); return; }}
     qr.innerHTML=hits.slice(0,12).map(function(h){{
       var href=h.r.f+(h.r.a?'#'+h.r.a:'');
       return '<a href="'+href+'"><span class="tb-p">'+esc(h.r.p)+'</span>'+
@@ -482,7 +496,7 @@ def toc(body):
     return "\n".join(out)
 
 
-def index_page(slug, fname, title, body):
+def index_page(slug, fname, title, body, translator=None):
     """One search record per section: page, heading, anchor, and the visible text under it."""
     recs = []
     marks = heading_marks(body)
@@ -508,7 +522,8 @@ def index_page(slug, fname, title, body):
     # Infusion rows remain individually searchable beyond the section excerpt.
     for match in re.finditer(r'<tr\b(?=[^>]* id="([^"]+)")(?=[^>]* data-infusion="([^"]+)")[^>]*>(.*?)</tr>', body, re.S):
         text = re.sub(r"<[^>]+>", " ", match.group(3))
-        recs.append({"p": title, "f": fname, "a": match.group(1), "h": match.group(2) + " infusion",
+        infusion_title = translator.text(match.group(2)) + " 지속 주입" if translator else match.group(2) + " infusion"
+        recs.append({"p": title, "f": fname, "a": match.group(1), "h": infusion_title,
                      "t": re.sub(r"\s+", " ", text).strip()[:1500]})
     # Keep individual settings and push times discoverable beyond the section excerpt.
     for match in re.finditer(r'<details\b(?=[^>]* id="([^"]+)")(?=[^>]* data-hardcore-setting=)[^>]*>(.*?)</details>', body, re.S):
@@ -525,7 +540,7 @@ def index_page(slug, fname, title, body):
             continue
         text = re.sub(r"<[^>]+>", " ", match.group(2))
         recs.append({"p": title, "f": fname, "a": match.group(1),
-                     "h": re.sub(r"<[^>]+>", "", heading.group(1)) + " push time",
+                     "h": re.sub(r"<[^>]+>", "", heading.group(1)) + (" 수동 주입 시간" if translator else " push time"),
                      "t": re.sub(r"\s+", " ", text).strip()[:1500]})
     return recs
 
@@ -552,7 +567,7 @@ def page_sections(body):
     return [(anchor, label, kind) for _, kind, anchor, label, _ in heading_marks(body)]
 
 
-def sidebar(current, sections=()):
+def sidebar(current, sections=(), locale='en'):
     """Sidebar nav, with the sections of the current page nested under its own link. Search sits at
     the top. Sub links are same page anchors, so following one never reloads."""
     out = ['<aside class="side" id="sideNav">',
@@ -564,11 +579,12 @@ def sidebar(current, sections=()):
            '    <input id="q" class="tb-q" type="search" placeholder="Search the wiki" aria-label="Search the wiki" autocomplete="off" spellcheck="false">',
            '    <div id="qr" class="tb-res" hidden></div>',
            '  </div>',
-           '  <form class="language-picker notranslate" data-language-picker translate="no">',
+           f'  <form class="language-picker notranslate" data-language-picker data-edition="{locale}" data-english-url="{"../" if locale == "ko" else ""}{current}.html" data-korean-url="{"" if locale == "ko" else "ko/"}{current}.html" translate="no">',
            '    <label for="wiki-language">Language</label>',
            '    <select id="wiki-language" name="language" aria-describedby="language-note">',
            '      <option value="en-US" lang="en-US">English (US)</option>',
            '      <option value="en-GB" lang="en-GB">English (UK)</option>',
+           '      <option value="ko" lang="ko">한국어</option>',
            '      <option value="de" lang="de">Deutsch</option>',
            '      <option value="fr" lang="fr">Français</option>',
            '      <option value="es" lang="es">Español</option>',
@@ -578,6 +594,7 @@ def sidebar(current, sections=()):
            '    <p id="language-note" data-language-note role="status">Choose a language, then apply.</p>',
            '    <noscript>Enable JavaScript to use language options.</noscript>',
            '  </form>',
+           f'  <a class="edition-link" href="{"../" if locale == "ko" else "ko/"}{current}.html" lang="{"en" if locale == "ko" else "ko"}">{"English edition" if locale == "ko" else "한국어판"}</a>',
            '  <nav class="nav">']
     seen = []
     for slug, fname, title, group in PAGES:
@@ -601,7 +618,7 @@ def sidebar(current, sections=()):
     return "\n".join(out)
 
 
-def build():
+def build(english_only=False):
     retired = os.path.join(OUT, "ov_traps.html")
     if os.path.isfile(retired):
         os.remove(retired)
@@ -672,21 +689,55 @@ def build():
         bodies[slug] = body
         index += index_page(slug, fname, title, body)
 
-    # PASS 2: write pages. The index is inlined into each page rather than fetched, so a page still
+    # PASS 2: write both static editions. Indexes and definitions are inlined,
     # searches when opened from disk with no server behind it.
     idx_json = json.dumps(index, separators=(",", ":"))
     terms_json = json.dumps({k: list(v) for k, v in TERMS.items()}, separators=(",", ":"))
     for slug, fname, title, group in PAGES:
         if slug not in bodies:
             continue
-        page = (HEAD.format(title=f"ACM Extended Wiki | {title}", css=css, canonical=PUBLIC_URL + fname)
+        page = (HEAD.format(title=f"ACM Extended Wiki | {title}", css=css, canonical=PUBLIC_URL + fname,
+                            english_url=PUBLIC_URL + fname, korean_url=PUBLIC_URL + 'ko/' + fname)
                 + sidebar(slug, page_sections(bodies[slug])) + "\n" + toc(bodies[slug]) + "\n" + bodies[slug]
-                + FOOT.format(version=VERSION, built=built, terms=terms_json, index=idx_json, reference_js=reference_js))
+                + FOOT.format(version=VERSION, built=built, terms=terms_json, index=idx_json, reference_js=reference_js, messages='{}'))
         open(os.path.join(OUT, fname), "w", encoding="utf-8").write(page)
+
+    if english_only:
+        return
+
+    korean_bodies, korean_index, translators = {}, [], {}
+    for slug, fname, title, group in PAGES:
+        if slug not in bodies:
+            continue
+        translator = translators[slug] = Korean(slug)
+        body = translator.html(bodies[slug], assets=True)
+        body = translate_level_data(body, translator)
+        korean_bodies[slug] = body
+        korean_index += index_page(slug, fname, translator.text(title), body, translator)
+    glossary = Korean('glossary')
+    korean_terms = {key: [glossary.text(name), glossary.text(desc)] for key, (name, desc) in TERMS.items()}
+    glossary.check()
+    ko_index_json = json.dumps(korean_index, ensure_ascii=False, separators=(',', ':')).replace('<', '\\u003c')
+    ko_terms_json = json.dumps(korean_terms, ensure_ascii=False, separators=(',', ':')).replace('<', '\\u003c')
+    messages = json.dumps(load_korean('runtime'), ensure_ascii=False, separators=(',', ':')).replace('<', '\\u003c')
+    os.makedirs(os.path.join(OUT, 'ko'), exist_ok=True)
+    for slug, fname, title, group in PAGES:
+        if slug not in korean_bodies:
+            continue
+        translator = translators[slug]
+        chrome = (HEAD.format(title=f"ACM Extended Wiki | {title}", css=css, canonical=PUBLIC_URL + 'ko/' + fname,
+                              english_url=PUBLIC_URL + fname, korean_url=PUBLIC_URL + 'ko/' + fname)
+                  .replace('<html lang="en-US">', '<html lang="ko">')
+                  + sidebar(slug, page_sections(bodies[slug]), 'ko') + '\n' + toc(bodies[slug]))
+        foot = FOOT.format(version=VERSION, built=built, terms=ko_terms_json, index=ko_index_json,
+                           reference_js=reference_js, messages=messages)
+        page = translator.html(chrome, assets=True) + '\n' + korean_bodies[slug] + translator.html(foot, assets=True)
+        translator.check()
+        open(os.path.join(OUT, 'ko', fname), 'w', encoding='utf-8').write(page)
 
     open(os.path.join(OUT, ".nojekyll"), "w").write("")
 
-    print(f"built {len(bodies)} page(s), {len(index)} search records, {len(TERMS)} glossary terms")
+    print(f"built {len(bodies)} English + {len(korean_bodies)} Korean pages, {len(index)} / {len(korean_index)} search records, {len(TERMS)} glossary terms per edition")
     print(f"copied {copied} image(s) from src/img to docs/img")
 
     # Every img/ reference must resolve, and every image should be used. A broken reference used to
@@ -717,4 +768,4 @@ def build():
 
 
 if __name__ == "__main__":
-    build()
+    build(english_only='--english-only' in sys.argv)

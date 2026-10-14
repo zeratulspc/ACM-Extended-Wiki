@@ -256,7 +256,7 @@ try {
   await motion.clock.runFor(1800);
 
   // Leaving the guide or hiding its document must pause rather than reset time.
-  await motion.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+  await motion.evaluate(() => window.scrollTo({top:document.documentElement.scrollHeight,behavior:'instant'}));
   await motion.waitForTimeout(80);
   assert(await motion.locator('[data-slideshow]').evaluate(element => !element.classList.contains('slideshow-running')));
   const awayProgress = await progress();

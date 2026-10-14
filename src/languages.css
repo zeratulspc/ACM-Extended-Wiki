@@ -7,3 +7,10 @@
 .language-picker p{font-size:.75rem;line-height:1.45;margin:0;color:var(--cream-dim)}
 .language-picker :focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 @media print{.language-picker{display:none}}
+.edition-link{display:block;margin:-.7rem 0 1rem;font-size:.85rem;color:var(--cream-dim);text-underline-offset:.2em}
+.edition-link:hover{color:var(--cream)}
+.edition-link:focus-visible{outline:2px solid var(--amber);outline-offset:3px}
+html[lang="ko"] body{font-family:system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans CJK KR",sans-serif;word-break:keep-all;overflow-wrap:anywhere}
+html[lang="ko"] .main{line-height:1.8}
+html[lang="ko"] .print-sheet{word-break:normal;line-height:1.35}
+@media print{.edition-link{display:none}}

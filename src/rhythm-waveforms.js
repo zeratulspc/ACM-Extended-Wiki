@@ -147,7 +147,7 @@
       const result = api.rhythmStripExample(name, time);
       if (!result) {
         cursor.style.display = 'none';
-        readout.textContent = 'Choose a time from 0 to 6 seconds.';
+        readout.textContent = wikiText('Choose a time from 0 to 6 seconds.');
         return;
       }
       const x = plot.left + time / duration * (plot.right - plot.left);
@@ -156,10 +156,10 @@
       dot.setAttribute('cx', x); dot.setAttribute('cy', y);
       api.sizeChartMarkers(svg, [dot]);
       dot.dataset.time = time; dot.dataset.deflection = result.deflection;
-      const label = 'Time: ' + time.toFixed(2) + ' s';
-      const value = 'Deflection: ' + (result.deflection > 0 ? '+' : '') + result.deflection.toFixed(1) + ' relative units';
+      const label = wikiText('Time: ') + time.toFixed(2) + ' s';
+      const value = wikiText('Deflection: ') + (result.deflection > 0 ? '+' : '') + result.deflection.toFixed(1) + wikiText(' relative units');
       root.querySelector('[data-rhythm-bubble-time]').textContent = label;
-      root.querySelector('[data-rhythm-bubble-value]').textContent = 'Offset: ' + (result.deflection > 0 ? '+' : '') + result.deflection.toFixed(1) + ' units';
+      root.querySelector('[data-rhythm-bubble-value]').textContent = wikiText('Offset: ') + (result.deflection > 0 ? '+' : '') + result.deflection.toFixed(1) + wikiText(' units');
       bubble.setAttribute('transform', 'translate(' + clamp(x + 14, plot.left, plot.right - 276) + ',' + clamp(y - 74, plot.top, plot.bottom - 61) + ')');
       readout.replaceChildren();
       [label, value].forEach(text => { const span = document.createElement('span'); span.textContent = text; readout.append(span); });

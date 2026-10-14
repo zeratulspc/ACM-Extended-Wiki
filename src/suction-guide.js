@@ -42,19 +42,19 @@
       const t = elapsed % cycle;
       if (reducedMotion.matches) {
         draw(1);
-        describe('Sweep side to side from bottom to top, then release and reassess.');
+        describe(wikiText('Sweep side to side from bottom to top, then release and reassess.'));
       } else if (t < 4200) {
         draw(t / 4200);
-        describe('Make short side-to-side sweeps from bottom to top.');
+        describe(wikiText('Make short side-to-side sweeps from bottom to top.'));
       } else if (t < 5200) {
         draw(1);
-        describe('Pause at the top, release suction and reassess.');
+        describe(wikiText('Pause at the top, release suction and reassess.'));
       } else if (t < 5800) {
         draw(1, 1 - (t - 5200) / 600);
-        describe('End of example.');
+        describe(wikiText('End of example.'));
       } else {
         draw(0, (t - 5800) / 700);
-        describe('Return to the bottom for the next example.');
+        describe(wikiText('Return to the bottom for the next example.'));
       }
     }
 
@@ -76,7 +76,7 @@
       frame = 0;
       previousTime = 0;
       toggle.hidden = reducedMotion.matches;
-      toggle.textContent = paused ? 'Play sweep' : 'Pause sweep';
+      toggle.textContent = paused ? wikiText('Play sweep') : wikiText('Pause sweep');
       toggle.setAttribute('aria-pressed', String(paused));
       render();
       if (shouldRun()) frame = window.requestAnimationFrame(tick);

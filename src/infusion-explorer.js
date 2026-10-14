@@ -8,7 +8,7 @@
   const fmt = value => Number(value).toLocaleString('en-US', { maximumSignificantDigits: 4 });
   const scale = row => row.rateUnit === 'mcg/min' ? 1000 : 1;
   const label = row => row.bandLow != null ? `${fmt(row.bandLow)}–${fmt(row.bandHigh)} ${row.unit}`
-    : row.bandHigh != null ? `${fmt(row.bandHigh)} ${row.unit}` : 'No serum target';
+    : row.bandHigh != null ? `${fmt(row.bandHigh)} ${row.unit}` : wikiText('No serum target');
 
   function project(row, options) {
     const { rateMgMin, minutes, weightKg = 83, stopMinutes = null, shock = false, esmolol = false } = options;
@@ -63,7 +63,7 @@
     for (const boundary of row.rateThresholds) {
       const item = document.createElement('li'), value = document.createElement('b');
       value.textContent = `${boundary.comparison} ${fmt(boundary.value * scale(row))} ${row.rateUnit}: `;
-      item.append(value, `${boundary.label}. Reads ${boundary.basis || 'actual admitted rate'}.`);
+      item.append(value, wikiText`${boundary.label}. Reads ${boundary.basis || wikiText('actual admitted rate')}.`);
       list.append(item);
     }
     list.hidden = list.children.length === 0;
@@ -75,9 +75,9 @@
     time.value = actualMinute;
     txt('level-cursor-time', `${fmt(actualMinute)} min`);
     txt('level-current', `${fmt(point.level)} ${row.unit}`);
-    txt('level-time', `At ${fmt(actualMinute)} min from a zero starting value`);
+    txt('level-time', wikiText`At ${fmt(actualMinute)} min from a zero starting value`);
     const dose = row.rateUnit === 'mcg/min' ? `${fmt(point.deliveredMg * 1000)} mcg` : `${fmt(point.deliveredMg)} mg`;
-    txt('level-readout', `${fmt(actualMinute)} min · ${fmt(point.level)} ${row.unit} · ${dose} admitted`);
+    txt('level-readout', wikiText`${fmt(actualMinute)} min · ${fmt(point.level)} ${row.unit} · ${dose} admitted`);
     $('level-dot').setAttribute('cx', x(actualMinute));
     $('level-dot').setAttribute('cy', y(point.level));
     window.ACMEWiki.sizeChartMarkers($('level-svg'), [$('level-dot')]);
@@ -112,13 +112,13 @@
     const step = Math.max(1, Math.floor(result.points.length / 700));
     const points = result.points.filter((p, i) => i % step === 0 || i === result.points.length - 1);
     $('level-path').setAttribute('d', points.map((p, i) => `${i ? 'L' : 'M'}${x(p.seconds / 60).toFixed(2)},${y(p.level).toFixed(2)}`).join(' '));
-    document.getElementById('level-chart-title').textContent = `${row.medication}: estimated game concentration`;
+    document.getElementById('level-chart-title').textContent = wikiText`${row.medication}: estimated game concentration`;
     txt('level-axis', row.unit);
   }
   function render() {
     txt('level-meaning', row.meaning);
     txt('level-band', label(row));
-    txt('level-reference-label', row.bandLow == null && row.bandHigh != null ? 'Caution boundary' : 'Configured reference');
+    txt('level-reference-label', row.bandLow == null && row.bandHigh != null ? wikiText('Caution boundary') : wikiText('Configured reference'));
     txt('level-band-note', row.therapeuticDisplayLabel);
     $('level-card-link').href = `#infusion-risk-${row.id}`;
     const modeled = row.model !== 'none';
@@ -130,28 +130,28 @@
     $('level-error').hidden = true;
     if (!modeled) {
       result = null;
-      txt('level-current-label', row.osmotherapy ? 'Modeled ICP response' : 'What the game reads');
-      txt('level-current', row.osmotherapy ? `Up to ${row.osmotherapy.icpDropPerReferenceMmHg} mmHg` : 'Native medication effect');
-      txt('level-time', row.osmotherapy ? `Per ${row.osmotherapy.referenceVolumeMl} mL reference with a TBI state` : 'Medication already on board, rather than a serum target');
-      txt('level-plateau-label', row.osmotherapy ? 'Sodium ceiling' : 'Preparation');
-      txt('level-plateau', row.osmotherapy ? `${row.osmotherapy.sodiumCeiling} mEq/L` : 'Single drug or mixture');
-      txt('level-half-life', row.osmotherapy ? 'Benefit stops here; this is not a target.' : 'See Ketofol and the dose guide for combined effects.');
+      txt('level-current-label', row.osmotherapy ? wikiText('Modeled ICP response') : wikiText('What the game reads'));
+      txt('level-current', row.osmotherapy ? wikiText`Up to ${row.osmotherapy.icpDropPerReferenceMmHg} mmHg` : wikiText('Native medication effect'));
+      txt('level-time', row.osmotherapy ? wikiText`Per ${row.osmotherapy.referenceVolumeMl} mL reference with a TBI state` : wikiText('Medication already on board, rather than a serum target'));
+      txt('level-plateau-label', row.osmotherapy ? wikiText('Sodium ceiling') : wikiText('Preparation'));
+      txt('level-plateau', row.osmotherapy ? `${row.osmotherapy.sodiumCeiling} mEq/L` : wikiText('Single drug or mixture'));
+      txt('level-half-life', row.osmotherapy ? wikiText('Benefit stops here; this is not a target.') : wikiText('See Ketofol and the dose guide for combined effects.'));
       thresholds(null);
       return;
     }
-    txt('level-current-label', 'At the selected time');
-    txt('level-plateau-label', 'With continuous delivery');
+    txt('level-current-label', wikiText('At the selected time'));
+    txt('level-plateau-label', wikiText('With continuous delivery'));
     const rateValue = rate.value === '' ? NaN : Number(rate.value);
     const options = { rateMgMin: rateValue / scale(row), minutes: Number(duration.value), weightKg: row.model === 'one-compartment' ? (weight.value === '' ? NaN : Number(weight.value)) : 83, stopMinutes: stopEnabled.checked ? (stop.value === '' ? NaN : Number(stop.value)) : null, shock: $('level-shock').checked, esmolol: $('level-esmolol').checked };
     try { result = project(row, options); } catch {
       result = null;
-      txt('level-error', rateValue / scale(row) > 1000000 ? 'That value exceeds this calculator’s numerical range. Enter a smaller value.' : 'Enter a nonnegative delivered rate, a weight of 30–200 kg and a stop time inside the chart duration.');
+      txt('level-error', rateValue / scale(row) > 1000000 ? wikiText('That value exceeds this calculator’s numerical range. Enter a smaller value.') : wikiText('Enter a nonnegative delivered rate, a weight of 30–200 kg and a stop time inside the chart duration.'));
       $('level-error').hidden = false;
       $('level-output').hidden = true;
       return;
     }
     txt('level-plateau', `${fmt(result.plateau)} ${row.unit}`);
-    txt('level-half-life', `Estimated plateau if delivery continues; washout half-life about ${fmt(result.halfLifeMinutes)} min.`);
+    txt('level-half-life', wikiText`Estimated plateau if delivery continues; washout half-life about ${fmt(result.halfLifeMinutes)} min.`);
     const previousTime = Number(time.value), atEnd = previousTime === Number(time.max);
     time.max = duration.value;
     time.value = atEnd ? duration.value : Math.min(previousTime, Number(duration.value));

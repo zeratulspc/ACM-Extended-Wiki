@@ -28,7 +28,7 @@
     button.type = 'button';
     button.className = 'copy-section-link';
     button.textContent = '#';
-    button.title = 'Copy link to ' + title;
+    button.title = wikiText('Copy link to ') + title;
     button.setAttribute('aria-label', button.title);
     heading.after(button);
     button.addEventListener('click', async () => {
@@ -40,17 +40,17 @@
         if (!navigator.clipboard || !navigator.clipboard.writeText) throw new Error('Clipboard unavailable');
         await navigator.clipboard.writeText(url.href);
         row.querySelector('.copy-link-fallback')?.remove();
-        announce('Section link copied');
+        announce(wikiText('Section link copied'));
       } catch (_) {
         let fallback = row.querySelector('.copy-link-fallback');
         if (!fallback) {
           fallback = document.createElement('label');
           fallback.className = 'copy-link-fallback';
-          fallback.textContent = 'Section link: select and copy';
+          fallback.textContent = wikiText('Section link: select and copy');
           const input = document.createElement('input');
           input.type = 'text';
           input.readOnly = true;
-          input.setAttribute('aria-label', 'Link to ' + title);
+          input.setAttribute('aria-label', wikiText('Link to ') + title);
           fallback.append(input);
           row.append(fallback);
         }
@@ -58,7 +58,7 @@
         input.value = url.href;
         input.focus();
         input.select();
-        announce('Select and copy the section link');
+        announce(wikiText('Select and copy the section link'));
       }
     });
   });

@@ -123,14 +123,14 @@
         value: Number(row.find(label => Number(label.getAttribute("x")) === 520)?.textContent) };
     });
     if (choices.length !== 6 || choices.some(choice => !choice.name || !Number.isFinite(choice.value))) return;
-    const view = makeInspector(svg, "Access type", choices.map(choice => choice.name));
+    const view = makeInspector(svg, wikiText("Access type"), choices.map(choice => choice.name));
     if (!view) return;
     function render() {
       const choice = choices[Number(view.control.value)];
       if (!choice) return;
       const x = Number(choice.bar.getAttribute("x")) + Number(choice.bar.getAttribute("width"));
       const y = Number(choice.bar.getAttribute("y")) + Number(choice.bar.getAttribute("height")) / 2;
-      view.update([["Access", choice.name], ["Base capacity", pretty(choice.value) + " mL/min"]],
+      view.update([[wikiText("Access"), choice.name], [wikiText("Base capacity"), pretty(choice.value) + " mL/min"]],
         [{ x, y, color: "#55a9fa" }], { left: 110, right: 690, top: 35, bottom: 305 });
     }
     view.bind(render, point => {
@@ -148,7 +148,7 @@
   function enhanceFluidConversion() {
     const svg = document.getElementById("fluid-graph-title")?.closest("svg");
     if (!svg) return;
-    const view = makeInspector(svg, "Time after fluid is present (min)");
+    const view = makeInspector(svg, wikiText("Time after fluid is present (min)"));
     if (!view) return;
     const input = view.control;
     Object.assign(input, { type: "number", min: "0", max: "25", step: "any", value: "0" });
@@ -160,13 +160,13 @@
       const minutes = input.value.trim() === "" ? NaN : Number(input.value);
       if (!Number.isFinite(minutes) || minutes < 0 || minutes > 25) {
         view.group.style.display = "none";
-        view.readout.textContent = "Enter a time from 0 to 25 minutes.";
+        view.readout.textContent = wikiText("Enter a time from 0 to 25 minutes.");
         return;
       }
       const converted = values(minutes);
       const x = 65 + minutes / 25 * 605;
-      view.update([["Time", pretty(minutes) + " min"], ["Plasma", pretty(converted[0]) + " mL"],
-        ["Crystalloid", pretty(converted[1]) + " mL"]], converted.map((volume, index) => ({
+      view.update([[wikiText("Time"), pretty(minutes) + " min"], [wikiText("Plasma"), pretty(converted[0]) + " mL"],
+        [wikiText("Crystalloid"), pretty(converted[1]) + " mL"]], converted.map((volume, index) => ({
           x, y: 260 - volume / 1000 * 220, color: ["#55a9fa", "#e5be73"][index]
         })), { left: 65, right: 680, top: 35, bottom: 260 });
     }
@@ -199,13 +199,13 @@
     // Existing labelled phase boundaries, in SVG coordinates. This figure has
     // no numeric ticks, so never infer seconds or cmH2O from its artwork.
     const phases = [
-      { name: "Inspiratory flow", start: 96, end: 246, observation: "Pressure rises toward its peak" },
-      { name: "Inspiratory pause", start: 246, end: 400, observation: "Pressure settles toward a plateau" },
-      { name: "Expiratory flow", start: 400, end: 534, observation: "Pressure falls toward PEEP" },
-      { name: "Expiratory pause", start: 534, end: 600, observation: "Pressure rests near PEEP" },
-      { name: "Next inspiration", start: 600, end: 648, observation: "A new breath begins" }
+      { name: wikiText("Inspiratory flow"), start: 96, end: 246, observation: wikiText("Pressure rises toward its peak") },
+      { name: wikiText("Inspiratory pause"), start: 246, end: 400, observation: wikiText("Pressure settles toward a plateau") },
+      { name: wikiText("Expiratory flow"), start: 400, end: 534, observation: wikiText("Pressure falls toward PEEP") },
+      { name: wikiText("Expiratory pause"), start: 534, end: 600, observation: wikiText("Pressure rests near PEEP") },
+      { name: wikiText("Next inspiration"), start: 600, end: 648, observation: wikiText("A new breath begins") }
     ];
-    const view = makeInspector(svg, "Breath phase (schematic)", phases.map(phase => phase.name));
+    const view = makeInspector(svg, wikiText("Breath phase (schematic)"), phases.map(phase => phase.name));
     if (!view) return;
     function render(at) {
       const phase = phases[Number(view.control.value)];
@@ -214,9 +214,9 @@
       const high = points[Math.max(1, next)];
       const low = points[Math.max(0, next - 1)];
       const y = low[1] + (high[1] - low[1]) * (x - low[0]) / (high[0] - low[0]);
-      view.update([["Phase", phase.name]], [{ x, y }], { left: 98, right: 664, top: 50, bottom: 300 });
+      view.update([[wikiText("Phase"), phase.name]], [{ x, y }], { left: 98, right: 664, top: 50, bottom: 300 });
       const row = document.createElement("span");
-      row.textContent = phase.observation + ". Shape only; time and pressure are not to scale.";
+      row.textContent = phase.observation + wikiText(". Shape only; time and pressure are not to scale.");
       view.readout.append(row);
     }
     view.bind(render, point => {

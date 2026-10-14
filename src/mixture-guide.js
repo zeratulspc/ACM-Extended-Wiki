@@ -25,7 +25,7 @@
         const step = steps[current];
         recipe.querySelector('.mixture-syringe-canvas').style.setProperty('--mixture-fill', Number(step.dataset.mixtureFill) / 10);
         recipe.querySelector('[data-mixture-drawing]').textContent = step.dataset.mixtureContents;
-        recipe.querySelector('[data-mixture-step-count]').textContent = `Step ${current + 1} of ${steps.length}`;
+        recipe.querySelector('[data-mixture-step-count]').textContent = wikiText`Step ${current + 1} of ${steps.length}`;
         previous.disabled = current === 0;
         next.disabled = current === steps.length - 1;
       }
@@ -49,7 +49,7 @@
         output.replaceChildren();
         if (!valid) {
           const message = document.createElement('p');
-          message.textContent = 'No result until a valid volume or rate is entered.';
+          message.textContent = wikiText('No result until a valid volume or rate is entered.');
           output.append(message);
           return;
         }
@@ -64,7 +64,7 @@
           result.textContent = `${format(measured)} ${component.unit}${isBag ? '/min' : ''}`;
           detail.textContent = isBag
             ? `${format(component.amount / totalMl)} ${component.unit}/mL × ${format(value / 60)} mL/min`
-            : `In ${format(value)} mL of the prepared syringe`;
+            : wikiText`In ${format(value)} mL of the prepared syringe`;
           card.append(name, result, detail);
           output.append(card);
         }

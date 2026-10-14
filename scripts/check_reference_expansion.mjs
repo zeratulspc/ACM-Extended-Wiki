@@ -27,7 +27,7 @@ try{
  assert(Math.max(...heartTerms)-Math.min(...heartTerms)<2,'Heart-rate glossary words must not become separate rows');
  await capture(page.locator('[data-do2-calculator]'),'review-calculator-fixed.png');
  const language=page.locator('#wiki-language');
- assert.deepEqual(await language.locator('option').evaluateAll(options=>options.map(option=>option.value)),['en-US','en-GB','de','fr','es','ru']);
+ assert.deepEqual(await language.locator('option').evaluateAll(options=>options.map(option=>option.value)),['en-US','en-GB','ko','de','fr','es','ru']);
  await language.selectOption('en-GB');await page.locator('[data-language-apply]').click();
  assert.equal(await page.locator('html').getAttribute('lang'),'en-GB');
  assert((await page.locator('#spo2-and-poor-perfusion').textContent()).includes('hypovolaemia'));
